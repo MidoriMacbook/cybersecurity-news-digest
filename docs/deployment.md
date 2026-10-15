@@ -1,8 +1,18 @@
 # Локальный запуск и повторная публикация
 
+## Опубликованный сервис
+
+- Репозиторий: https://github.com/MidoriMacbook/cybersecurity-news-digest-clean, ветка main.
+- Сайт и backend: https://cybersecurity-news-digest-clean.onrender.com.
+- Health: https://cybersecurity-news-digest-clean.onrender.com/health.
+- Панель сервиса: https://dashboard.render.com/web/srv-db84l1uq1p3s739iek20.
+- Тариф Free, Frankfurt, Dockerfile ./Dockerfile, context .; постоянный диск и платная база не подключены.
+
+Подтверждены сборка образа, запуск, /health и demo-run. При создании сервиса включён autoDeploy, но получение webhook от нового публичного репозитория не подтверждено: исправленная версия опубликована ручным деплоем. До проверки интеграции GitHub используйте Manual Deploy → Deploy latest commit в панели сервиса. Файл render.yaml содержит рекомендуемый healthCheckPath /health; HTTP-проверка этого адреса выполнена отдельно.
+
 ## Вариант A: Vercel + Render
 
-1. Создайте public GitHub-репозиторий cybersecurity-news-digest и загрузите проверенный код без .env и локальных данных.
+1. Используйте репозиторий cybersecurity-news-digest-clean с проверенным кодом без .env и локальных данных.
 2. Создайте Render Web Service из GitHub, plan Free, Dockerfile `apps/api/Dockerfile`, context корень репозитория, health check `/health`.
 3. Задайте MODE=mock и DATABASE_URL; для демонстрации допустим SQLite с учётом непостоянного диска. Для постоянной истории используйте внешнюю PostgreSQL.
 4. Создайте Vercel-проект из того же репозитория, root directory `apps/web`, framework Next.js. Команда установки `corepack pnpm install --frozen-lockfile`, build `corepack pnpm build`, output `out`.
@@ -18,13 +28,19 @@
 
 ## Повторный деплой
 
-Измените код → запустите тесты/lint/typecheck/build → commit → push main. Blueprint использует checksPass; GitHub workflow Deploy запускается после успешного Tests. При настройке RENDER_DEPLOY_HOOK сохраните его в GitHub Actions Secrets. Без секрета workflow только проверяет сборку; это не означает публикацию.
+Измените код → запустите тесты/lint/typecheck/build → commit → push main → дождитесь Tests/Lint/Deploy в GitHub Actions → откройте панель Render и выберите Manual Deploy → Deploy latest commit. Дождитесь Live, проверьте /health и создайте новый демо-выпуск. Историю SQLite заранее экспортируйте: новый контейнер может её потерять.
+
+Blueprint описывает checksPass; GitHub workflow Deploy запускается после успешного Tests. При настройке RENDER_DEPLOY_HOOK сохраните его в GitHub Actions Secrets. Без секрета workflow только проверяет сборку; зелёный workflow сам по себе не означает публикацию. Автоматический запуск после push нужно отдельно подтвердить по commit SHA в Render.
+
+Для обновления локальной копии выполните git pull --ff-only из каталога проекта. Проверяйте git status до обновления и сохраняйте собственные изменения отдельным коммитом. Новые коммиты используйте с локальной настройкой user.name=MidoriMacbook и user.email=257091193+MidoriMacbook@users.noreply.github.com.
 
 Для новой среды поменяйте NEXT_PUBLIC_API_URL до frontend build. Переменная в статическом bundle не изменяется после сборки. Проверьте фактически выданные URL, а не ожидаемый шаблон домена.
 
 ## Ключ и база
 
 Изменение LLM_API_KEY, LLM_BASE_URL и LLM_MODEL выполняется только на backend. Проверьте model_name/mode/attempts в новом результате. Для PostgreSQL используйте SQLAlchemy URL и подходящий psycopg driver; не коммитьте connection string. Миграцию уже существующей истории из SQLite в PostgreSQL выполняйте отдельно с резервной копией.
+
+Для смены ключа откройте Render → сервис → Environment, замените LLM_API_KEY, при необходимости LLM_BASE_URL и LLM_MODEL, затем сохраните изменения с перезапуском. Создайте новый выпуск с включённым «Использовать ИИ» и проверьте фактические model_name, metrics.mode и model_attempts. /health подтверждает наличие конфигурации, но не успешную авторизацию у поставщика. Ключ не помещайте в NEXT_PUBLIC_* или Git. Если прежний ключ был раскрыт, отзовите его у поставщика.
 
 ## Ограничения бесплатного хостинга
 
