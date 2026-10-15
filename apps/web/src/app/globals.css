@@ -169,6 +169,7 @@ code {
   margin: 50px 8px 17px;
 }
 .nav-link {
+  overflow-wrap: anywhere;
   display: flex;
   gap: 15px;
   padding: 13px 12px;
