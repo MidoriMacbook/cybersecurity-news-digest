@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.config import MAX_REQUEST_BYTES
+from app.config import ENGINE_VERSION, MAX_REQUEST_BYTES
 from app.providers.editorial import apply_ai_editorial
 from app.providers.sources import preview
 from app.providers.storage import IdempotencyConflict, Storage
@@ -112,9 +112,13 @@ def create_app(storage: Storage | None = None) -> FastAPI:
     def health():
         return {
             "status": "ok",
-            "mode": "api" if os.getenv("LLM_API_KEY") else "mock",
-            "model_name": os.getenv("LLM_MODEL", "extractive-local"),
-            "prompt_version": "pipeline-v1",
+            "mode": "ai" if os.getenv("LLM_API_KEY") else "mock",
+            "llm_configured": bool(os.getenv("LLM_API_KEY")),
+            "model_name": os.getenv("LLM_MODEL", "gpt-4.1-mini")
+            if os.getenv("LLM_API_KEY")
+            else "extractive-local",
+            "prompt_version": "editorial-v3" if os.getenv("LLM_API_KEY") else "pipeline-v1",
+            "application_version": ENGINE_VERSION,
         }
 
     @app.get("/api/v1/demo")

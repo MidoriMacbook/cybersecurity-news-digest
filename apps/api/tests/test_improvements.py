@@ -227,9 +227,12 @@ def test_ai_ignores_failed_duplicate_record(tmp_path, monkeypatch):
     plan = plan_for([article()])
 
     def response(self, payload):
-        supplied = json.loads(payload["messages"][1]["content"])["eligible_articles"]
-        assert len(supplied) == 1
-        return {"choices": [{"message": {"content": json.dumps(plan)}}]}
+        from editorial_transport import response_for
+
+        if payload["response_format"]["json_schema"]["name"] == "editorial_v2":
+            supplied = json.loads(payload["messages"][1]["content"])["eligible_articles"]
+            assert len(supplied) == 1
+        return response_for(payload, plan)
 
     monkeypatch.setattr(OpenAICompatibleProvider, "request_json", response)
     client = TestClient(create_app(Storage(f"sqlite:///{tmp_path / 'failed-duplicate.db'}")))
@@ -305,6 +308,7 @@ def api_ai(client, articles):
 def test_ai_editorial_plan_changes_order_and_is_reproducible(tmp_path, monkeypatch):
     from app.main import create_app
     from app.providers.storage import Storage
+    from editorial_transport import response_for
     from fastapi.testclient import TestClient
 
     monkeypatch.setenv("LLM_API_KEY", "test-key-never-export")
@@ -320,10 +324,7 @@ def test_ai_editorial_plan_changes_order_and_is_reproducible(tmp_path, monkeypat
     monkeypatch.setattr(
         OpenAICompatibleProvider,
         "request_json",
-        lambda self, payload: {
-            "choices": [{"message": {"content": json.dumps(plan)}}],
-            "usage": {"total_tokens": 77},
-        },
+        lambda self, payload: response_for(payload, plan, {"total_tokens": 77}),
     )
     client = TestClient(create_app(Storage(f"sqlite:///{tmp_path / 'ai.db'}")))
     response = api_ai(client, articles)
@@ -331,8 +332,8 @@ def test_ai_editorial_plan_changes_order_and_is_reproducible(tmp_path, monkeypat
     data = response.json()
     assert data["events"][0]["source_ids"] == ["b"]
     assert data["editorial_plan"] == plan
-    assert data["metrics"]["tokens_used"] == 77
-    assert data["metrics"]["model_calls"] == 1
+    assert data["metrics"]["tokens_used"] == 231
+    assert data["metrics"]["model_calls"] == 3
     assert all(c["passed"] for c in data["checks"])
     assert client.post("/api/v1/validate", json=data).json()["valid"]
     assert "test-key-never-export" not in response.text
@@ -380,6 +381,7 @@ def test_bad_ai_plan_falls_back_without_losing_news(tmp_path, monkeypatch, corru
 def test_ai_relevance_exclusion_has_audited_evidence(tmp_path, monkeypatch):
     from app.main import create_app
     from app.providers.storage import Storage
+    from editorial_transport import response_for
     from fastapi.testclient import TestClient
 
     monkeypatch.setenv("LLM_API_KEY", "test-key")
@@ -387,9 +389,7 @@ def test_ai_relevance_exclusion_has_audited_evidence(tmp_path, monkeypatch):
     monkeypatch.setattr(
         OpenAICompatibleProvider,
         "request_json",
-        lambda self, payload: {
-            "choices": [{"message": {"content": json.dumps(plan_for(articles, relevant=False))}}]
-        },
+        lambda self, payload: response_for(payload, plan_for(articles, relevant=False)),
     )
     client = TestClient(create_app(Storage(f"sqlite:///{tmp_path / 'irrelevant.db'}")))
     data = api_ai(client, articles).json()

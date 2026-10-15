@@ -7,11 +7,19 @@ export type Article = {
   url: string | null;
   published_at: string | null;
   read_error?: string | null;
+  original_record?: Record<string, unknown> | null;
 };
 export type Evidence = {
   fragment: string;
   source_id: string;
   url?: string | null;
+};
+export type RewrittenCopy = {
+  events: {
+    event_id: string;
+    digest: { text: string; evidence: Evidence[] }[];
+    post: { text: string; evidence: Evidence[] }[];
+  }[];
 };
 export type DigestEvent = {
   event_id: string;
@@ -31,6 +39,11 @@ export type DigestEvent = {
   evidence: Evidence[];
 };
 export type JournalRow = {
+  source_index?: number;
+  original_record?: Record<string, unknown>;
+  normalized_record?: Article | null;
+  evidence?: Evidence[];
+  related_sources?: string[];
   id: string | null;
   title: string | null;
   source: string | null;
@@ -73,10 +86,22 @@ export type DigestResult = {
   prompt_version: string;
   created_at: string;
   editorial_plan?: unknown | null;
+  ai_copy?: RewrittenCopy | null;
+  mode?: "ai" | "mock" | "fallback";
+  llm_attempts?: number;
+  token_usage?: {
+    input: number | null;
+    output: number | null;
+    total: number | null;
+  };
+  started_at?: string;
+  completed_at?: string;
+  application_version?: string;
 };
 export type Health = {
   status: string;
   mode: string;
   model_name: string;
   prompt_version: string;
+  llm_configured?: boolean;
 };

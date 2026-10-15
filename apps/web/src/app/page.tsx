@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useWorkspace } from "../components/workspace";
+import { serverModeLabel } from "../lib/execution";
 export default function Home() {
   const { health } = useWorkspace();
   return (
@@ -26,7 +27,7 @@ export default function Home() {
         </div>
         <div className="hero-footnote">
           {health
-            ? `Сервер подключён · режим ${health.mode}`
+            ? `Сервер подключён · ${serverModeLabel(health)}`
             : "Статус сервера отображается в навигации"}
           <span>Ключ API не нужен для демо</span>
         </div>

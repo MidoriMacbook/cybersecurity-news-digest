@@ -1,10 +1,9 @@
-import json
-
 from app.config import execution_fingerprint
 from app.main import create_app
 from app.providers.llm import OpenAICompatibleProvider
 from app.providers.storage import Storage
 from app.schemas.models import DigestRequest
+from editorial_transport import response_for
 from fastapi.testclient import TestClient
 from test_pipeline import CONTROL, article
 
@@ -31,16 +30,17 @@ def test_cache_namespace_tracks_key_presence_model_endpoint_and_engine(tmp_path,
                 {"source_ids": ["a"], "lead": evidence, "priority": 0, "ranking_evidence": evidence}
             ],
         }
-        return {
-            "choices": [{"message": {"content": json.dumps(plan)}}],
-            "usage": {"total_tokens": 11},
-        }
+        return response_for(payload, plan, {"total_tokens": 11})
 
     monkeypatch.setattr(OpenAICompatibleProvider, "request_json", editorial)
     monkeypatch.setenv("LLM_API_KEY", "super-secret")
     second = api.post("/api/v1/digest", json=request.model_dump()).json()
     assert second["digest_id"] != first["digest_id"]
-    assert second["metrics"]["mode"] == "api" and len(calls) == 1
+    assert second["metrics"]["mode"] == "api" and len(calls) == 3
+    repeated = api.post("/api/v1/digest", json=request.model_dump()).json()
+    assert len(calls) == 3
+    assert repeated["started_at"] == second["started_at"]
+    assert repeated["completed_at"] == second["completed_at"]
     configured = execution_fingerprint(request)
     assert original != configured
     monkeypatch.setenv("LLM_MODEL", "new-model")

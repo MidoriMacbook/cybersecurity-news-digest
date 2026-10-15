@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { Alert, PageHeading, useWorkspace } from "../../components/workspace";
 import { request } from "../../lib/api";
 import { Journal, sourceLabels } from "../../components/journal";
-import { controlTime, moscowNow, parseArticles } from "../../lib/input";
+import {
+  controlTime,
+  moscowNow,
+  parseArticles,
+  serializeDigestRequest,
+} from "../../lib/input";
+import { serverModeLabel } from "../../lib/execution";
 import type { Article, DigestResult, JournalRow } from "../../lib/types";
 import { demoScenarios, loadDemoScenario } from "../../lib/demo";
 import type { DemoScenario } from "../../lib/demo";
@@ -131,7 +137,7 @@ export default function Create() {
   async function fileInput(file: File | undefined) {
     if (!file) return;
     setError("");
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 2_000_000) {
       setError("Максимальный размер файла — 2 МБ.");
       return;
     }
@@ -160,6 +166,15 @@ export default function Create() {
           source: source.trim() || null,
           url: url.trim() || null,
           published_at: published.trim() || null,
+          original_record: {
+            id: articleId,
+            title,
+            text: raw,
+            source,
+            source_type: sourceType,
+            url,
+            published_at: published,
+          },
         }));
       }
       if (!input.length)
@@ -170,7 +185,7 @@ export default function Create() {
       controller.current = new AbortController();
       const result = await request<DigestResult>("/api/v1/digest", {
         method: "POST",
-        body: JSON.stringify({
+        body: serializeDigestRequest({
           control_time: control,
           timezone: "Europe/Moscow",
           event_limit: limit,
@@ -521,7 +536,7 @@ export default function Create() {
             </label>
             <div className="settings-note">
               {health
-                ? `Текущий режим сервера: ${health.mode}.`
+                ? `Сервер: ${serverModeLabel(health)}.`
                 : "Режим определяется сервером."}{" "}
               Без ключа доступна локальная обработка.
             </div>

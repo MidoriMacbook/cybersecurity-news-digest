@@ -16,10 +16,23 @@ def parse_articles(fmt: str, content: str) -> list[Article]:
             data = data.get("articles", [])
     elif fmt == "csv":
         data = list(csv.DictReader(io.StringIO(content.lstrip("\ufeff"))))
-        data = [{k: v or None for k, v in row.items()} for row in data]
     else:
         # Unstructured text cannot confirm dates, origin, or URL: retain missing metadata.
         data = [{"text": block} for block in content.split("\n---\n") if block.strip()]
+    if not isinstance(data, list) or not all(isinstance(row, dict) for row in data):
+        raise ValueError("Ожидается список записей")
+    fields = set(Article.model_fields) - {"original_record"}
+    data = [
+        {
+            **{
+                key: (value or None) if fmt == "csv" else value
+                for key, value in row.items()
+                if key in fields
+            },
+            "original_record": row,
+        }
+        for row in data
+    ]
     articles = TypeAdapter(list[Article]).validate_python(data)
     if len(articles) > 100:
         raise ValueError("Максимум 100 материалов")

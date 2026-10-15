@@ -15,7 +15,11 @@ def qualify(
             for key in ["id", "title", "source", "source_type", "url", "published_at"]
         },
         status="accepted",
-        missing_fields=[k for k, v in article.model_dump().items() if not v and k != "read_error"],
+        missing_fields=[
+            k
+            for k, v in article.model_dump().items()
+            if not v and k not in {"read_error", "original_record"}
+        ],
         processed_at=now,
     )
     if article.read_error:

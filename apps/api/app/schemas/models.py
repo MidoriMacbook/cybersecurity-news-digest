@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -21,6 +21,7 @@ class Article(StrictModel):
     url: str | None = Field(default=None, max_length=2000)
     published_at: str | None = Field(default=None, max_length=100)
     read_error: str | None = Field(default=None, max_length=1000)
+    original_record: dict[str, Any] | None = None
 
 
 class DigestRequest(StrictModel):
@@ -65,6 +66,31 @@ class EditorialGroup(StrictModel):
 class EditorialPlan(StrictModel):
     decisions: list[EditorialDecision] = Field(max_length=100)
     groups: list[EditorialGroup] = Field(max_length=100)
+
+
+class GroundedSentence(StrictModel):
+    text: str = Field(min_length=1, max_length=1600)
+    evidence: list[Evidence] = Field(min_length=1, max_length=100)
+
+
+class RewrittenEvent(StrictModel):
+    event_id: str
+    digest: list[GroundedSentence] = Field(min_length=1, max_length=100)
+    post: list[GroundedSentence] = Field(min_length=1, max_length=100)
+
+
+class RewrittenCopy(StrictModel):
+    events: list[RewrittenEvent] = Field(max_length=5)
+
+
+class SentenceVerdict(StrictModel):
+    sentence_id: str
+    entailed: bool
+    evidence: list[Evidence] = Field(min_length=1, max_length=100)
+
+
+class SemanticVerification(StrictModel):
+    sentences: list[SentenceVerdict] = Field(max_length=1000)
 
 
 class RankingFactors(StrictModel):
@@ -120,6 +146,11 @@ class Journal(StrictModel):
     prompt_version: str = "pipeline-v1"
     processed_at: str
     model_attempts: list[dict[str, str | int | bool]] = []
+    source_index: int = 0
+    original_record: dict[str, Any] = {}
+    normalized_record: Article | None = None
+    evidence: list[Evidence] = []
+    related_sources: list[str] = []
 
 
 class Check(StrictModel):
@@ -137,10 +168,16 @@ class Metrics(StrictModel):
     duration_ms: int
     model_calls: int = 0
     tokens_used: int = 0
-    token_usage_available: bool = True
+    token_usage_available: bool = False
     cost_usd: float | None = None
     mode: str = "mock"
     model_attempts: list[dict[str, str | int | bool]] = []
+
+
+class TokenUsage(StrictModel):
+    input: int | None = Field(default=None, ge=0)
+    output: int | None = Field(default=None, ge=0)
+    total: int | None = Field(default=None, ge=0)
 
 
 class Result(StrictModel):
@@ -165,6 +202,14 @@ class Result(StrictModel):
     prompt_version: str
     created_at: str
     editorial_plan: EditorialPlan | None = None
+    ai_copy: RewrittenCopy | None = None
+    semantic_verification: SemanticVerification | None = None
+    mode: Literal["ai", "mock", "fallback"] = "mock"
+    llm_attempts: int = 0
+    token_usage: TokenUsage = Field(default_factory=TokenUsage)
+    started_at: str = ""
+    completed_at: str = ""
+    application_version: str = "1.6"
 
     def digest_text_without_urls(self) -> str:
         return re.sub(r"https?://\S+", "", self.digest_text)

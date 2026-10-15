@@ -32,6 +32,7 @@ class OpenAICompatibleProvider:
         self.key = os.getenv("LLM_API_KEY", "")
         self.base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         self.model = os.getenv("LLM_MODEL", "gpt-4.1-mini")
+        self.deadline_seconds = LLM_DEADLINE_SECONDS
 
     def request_json(self, payload: dict):
         async def bounded():
@@ -53,7 +54,9 @@ class OpenAICompatibleProvider:
                 return json.loads(body)
 
         async def deadline():
-            return await asyncio.wait_for(bounded(), timeout=LLM_DEADLINE_SECONDS)
+            return await asyncio.wait_for(
+                bounded(), timeout=min(LLM_DEADLINE_SECONDS, self.deadline_seconds)
+            )
 
         return asyncio.run(deadline())
 

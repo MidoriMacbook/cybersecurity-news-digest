@@ -12,6 +12,7 @@ import {
 } from "react";
 import { request } from "../lib/api";
 import type { DigestResult, Health } from "../lib/types";
+import { serverModeLabel } from "../lib/execution";
 
 const Context = createContext<{
   result: DigestResult | null;
@@ -115,11 +116,12 @@ export function Workspace({ children }: { children: React.ReactNode }) {
           <div className="api-status" title={healthError || health?.model_name}>
             <span className={health ? "status-dot" : "status-dot offline"} />
             {health
-              ? `Режим: ${health.mode}`
+              ? serverModeLabel(health)
               : healthError
                 ? "API недоступен"
                 : "Подключение к API…"}
             <small>{health?.model_name || "Состояние сервера"}</small>
+            {health && <small>Промпт: {health.prompt_version}</small>}
           </div>
         </aside>
         <div className="main-area">
@@ -141,6 +143,13 @@ export function Workspace({ children }: { children: React.ReactNode }) {
               UTC+3 · Москва
             </span>
           </header>
+          {health && (
+            <div className="server-caption">
+              Модель сервера: {health.model_name} · промпт:{" "}
+              {health.prompt_version} · успешный ИИ-прогон подтверждается только
+              в результате
+            </div>
+          )}
           <main id="content" tabIndex={-1}>
             {children}
           </main>

@@ -22,6 +22,16 @@ def process(
     normalized = [normalize(article) for article in request.articles]
     used_ids: set[str] = set()
     journal = [qualify(article, start, end, now, used_ids) for article in normalized]
+    for index, (original, article, row) in enumerate(
+        zip(request.articles, normalized, journal, strict=True)
+    ):
+        row.source_index = index
+        row.original_record = (
+            original.original_record
+            if original.original_record is not None
+            else original.model_dump(exclude={"original_record"})
+        )
+        row.normalized_record = article.model_copy(update={"original_record": None})
     pairs = list(zip(normalized, journal, strict=True))
     groups = editorial_groups(editorial_plan, pairs) if editorial_plan else group_events(pairs)
     extracted = [extract_event(key, group, end) for key, group in groups.items()]
@@ -30,6 +40,17 @@ def process(
         if editorial_plan
         else rank_events(extracted)
     )
+    for article, row in pairs:
+        matched = next((event for event in events if event.event_id == row.event_id), None)
+        if matched is not None:
+            row.evidence = [
+                item
+                for item in matched.evidence
+                if item.source_id == article.id
+                and item.url == article.url
+                and item.fragment in (article.text or "")
+            ]
+            row.related_sources = matched.source_ids
     warnings = ["Информационный дайджест; не является официальной рекомендацией."]
     if any(is_demo_url(a.url) for a in normalized):
         warnings.append(
@@ -96,6 +117,9 @@ def process(
         prompt_version=PROMPT_VERSION,
         created_at=now,
         editorial_plan=editorial_plan,
+        started_at=now,
+        completed_at=datetime.now(UTC).isoformat(),
+        application_version=ENGINE_VERSION,
     )
     if check:
         result.checks = validate_result(result)

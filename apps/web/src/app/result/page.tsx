@@ -16,6 +16,8 @@ import {
 import { Journal, SourceLink, sourceLabels } from "../../components/journal";
 import { download, formatDate, journalCsv } from "../../lib/input";
 import { QualitySummary } from "../../components/quality-summary";
+import { ExecutionSummary } from "../../components/execution-summary";
+import { eventDigest } from "../../lib/execution";
 import { displayMetric } from "../../lib/quality";
 import { selectEventSource } from "../../lib/event-source";
 const tabs = [
@@ -178,6 +180,7 @@ function ResultContent({ requestedId }: { requestedId: string | null }) {
         }
       />
       <MetricGrid metrics={result.metrics} />
+      <ExecutionSummary result={result} />
       <QualitySummary result={result} />
       <div className="result-toolbar">
         <button className="button primary" onClick={copy}>
@@ -314,7 +317,9 @@ function ResultContent({ requestedId }: { requestedId: string | null }) {
                     )}
                   </div>
                   <h3>{event.title}</h3>
-                  <p>{event.summary}</p>
+                  {eventDigest(result, event).map((text, index) => (
+                    <p key={index}>{text}</p>
+                  ))}
                   {event.consequences && (
                     <p className="consequences">
                       <strong>Последствия: </strong>
@@ -454,11 +459,19 @@ function ResultContent({ requestedId }: { requestedId: string | null }) {
                     <small>Синтетический демонстрационный источник</small>
                   )}
                   <details>
-                    <summary>Исходный текст</summary>
+                    <summary>Нормализованный текст</summary>
                     <p className="prose-text">
                       {s.text || "Текст отсутствует"}
                     </p>
                   </details>
+                  {s.original_record && (
+                    <details>
+                      <summary>Исходная запись</summary>
+                      <pre className="code-block">
+                        {JSON.stringify(s.original_record, null, 2)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               </article>
             ))}
@@ -558,6 +571,19 @@ function ResultContent({ requestedId }: { requestedId: string | null }) {
                 ["Модель", result.model_name],
                 ["Версия модели", result.model_version],
                 ["Промпт", result.prompt_version],
+                ["Версия приложения", result.application_version],
+                ["Фактический режим", result.mode],
+                [
+                  "Начало",
+                  result.started_at ? formatDate(result.started_at) : null,
+                ],
+                [
+                  "Завершение",
+                  result.completed_at ? formatDate(result.completed_at) : null,
+                ],
+                ["Токены: вход", result.token_usage?.input?.toString()],
+                ["Токены: выход", result.token_usage?.output?.toString()],
+                ["Токены: всего", result.token_usage?.total?.toString()],
                 ["Создано", formatDate(result.created_at)],
                 ["Контрольное время", formatDate(result.control_time)],
               ].map(([k, v]) => (

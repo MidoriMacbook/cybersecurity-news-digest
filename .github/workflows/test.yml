@@ -16,7 +16,13 @@ jobs:
       - run: python -m ruff check apps/api scripts
       - run: python -m ruff format --check apps/api scripts
       - run: python -m mypy apps/api/app
-      - run: python -m pytest apps/api/tests -q
+      - run: python -m pytest apps/api/tests scripts/tests -q
+      - run: python scripts/validate_contest.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-results
+          path: artifacts/validation/
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -31,3 +37,29 @@ jobs:
       - run: corepack pnpm install --frozen-lockfile
       - run: corepack pnpm test
       - run: corepack pnpm build
+  container:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run unified container
+        run: |
+          docker build -t cyberdigest:ci .
+          docker run -d --name digest-smoke -p 127.0.0.1:18000:8000 cyberdigest:ci
+          curl --fail --silent --show-error --retry 12 --retry-delay 2 --retry-connrefused http://127.0.0.1:18000/health
+          curl --fail --silent --show-error http://127.0.0.1:18000/ > /tmp/digest-index.html
+          curl --fail --silent --show-error -X POST http://127.0.0.1:18000/api/v1/digest/demo -H 'Content-Type: application/json' -d '{}' > /tmp/digest-demo.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('/tmp/digest-demo.json').read_text())
+          assert data['event_count'] == 5
+          assert data['mode'] == 'mock'
+          assert all(check['passed'] for check in data['checks'])
+          assert 'Кибердайджест' in Path('/tmp/digest-index.html').read_text()
+          PY
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          docker logs digest-smoke || true
+          docker rm -f digest-smoke || true

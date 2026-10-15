@@ -144,7 +144,10 @@ def extract_event(key: str, group: list[tuple[Article, Journal]], control_time: 
         if re.search(r"выпущен|исправлен|новые факты|новый отч[её]т", text, re.IGNORECASE)
         else 1,
         completeness=5
-        if all(all(v for k, v in a.model_dump().items() if k != "read_error") for a, _ in group)
+        if all(
+            all(v for k, v in a.model_dump().items() if k not in {"read_error", "original_record"})
+            for a, _ in group
+        )
         else 3,
     )
     confidence: Literal["high", "medium", "low"] = "low" if preliminary or conflict else "medium"

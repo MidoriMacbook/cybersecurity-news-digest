@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from app.schemas.models import Check, DigestRequest, Result
 from app.services.composition import email_html, render
+from app.services.grounding import render_copy, verify_copy, verify_semantics
 
 
 def validate_result(result: Result) -> list[Check]:
@@ -28,6 +29,13 @@ def validate_result(result: Result) -> list[Check]:
         ] and (bool(result.events) or not regenerated.events)
         digest = render(result.events, start, end, sources=result.sources)
         post = render(result.events, start, end, short=True, sources=result.sources)
+        if result.ai_copy is not None:
+            if result.semantic_verification is None:
+                raise ValueError("Missing semantic verification")
+            verify_copy(result, result.ai_copy)
+            verify_semantics(result.ai_copy, result.semantic_verification)
+            digest = render_copy(result, result.ai_copy, False)
+            post = render_copy(result, result.ai_copy, True)
         formats_ok = (
             result.digest_text == digest
             and result.post_text == post

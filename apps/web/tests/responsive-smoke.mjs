@@ -17,7 +17,7 @@ const { chromium } = runtimeRoot
   const results = [];
   fs.mkdirSync("output/playwright", { recursive: true });
   try {
-    for (const width of [375, 768, 1024, 1440]) {
+    for (const width of [375, 390, 768, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       for (const path of ["/", "/create/", "/result/", "/journal/", "/docs/"]) {
         await page.goto(`${webBase}${path}`);

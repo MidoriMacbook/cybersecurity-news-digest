@@ -1,8 +1,10 @@
 import type { DigestResult } from "../lib/types";
 import { summarizeQuality, textLength } from "../lib/quality";
+import { executionDetails } from "../lib/execution";
 
 export function QualitySummary({ result }: { result: DigestResult }) {
   const quality = summarizeQuality(result);
+  const execution = executionDetails(result);
   const requiresReview =
     quality.failedChecks.length > 0 ||
     quality.conflictingEvents > 0 ||
@@ -50,11 +52,7 @@ export function QualitySummary({ result }: { result: DigestResult }) {
       <p className="field-hint">
         Проверки отражают обработку и соответствие формату. Достоверность
         публикаций требует редакционной оценки. Модель:{" "}
-        {result.model_name || "не указана"}; режим:{" "}
-        {typeof result.metrics.mode === "string"
-          ? result.metrics.mode
-          : "нет данных"}
-        .
+        {result.model_name || "не указана"}; режим: {execution.label}.
       </p>
       {quality.failedChecks.length > 0 && (
         <p className="failed-checks">

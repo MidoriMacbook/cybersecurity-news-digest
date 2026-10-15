@@ -210,7 +210,35 @@ export function Journal({ rows }: { rows: JournalRow[] }) {
                       </dd>
                       <dt>Обработано</dt>
                       <dd>{formatDate(r.processed_at)}</dd>
+                      {r.source_index != null && (
+                        <>
+                          <dt>Позиция во входном наборе</dt>
+                          <dd>{r.source_index + 1}</dd>
+                        </>
+                      )}
                     </dl>
+                    {r.original_record && (
+                      <details>
+                        <summary>Исходная запись</summary>
+                        <pre className="code-block">
+                          {JSON.stringify(r.original_record, null, 2)}
+                        </pre>
+                      </details>
+                    )}
+                    {r.normalized_record && (
+                      <details>
+                        <summary>Нормализованная запись</summary>
+                        <pre className="code-block">
+                          {JSON.stringify(r.normalized_record, null, 2)}
+                        </pre>
+                      </details>
+                    )}
+                    {r.evidence?.map((item, index) => (
+                      <blockquote key={index}>
+                        <p>{item.fragment}</p>
+                        <SourceLink url={item.url}>{item.source_id}</SourceLink>
+                      </blockquote>
+                    ))}
                   </details>
                 </td>
               </tr>

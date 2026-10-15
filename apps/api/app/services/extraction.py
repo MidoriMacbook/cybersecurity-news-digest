@@ -100,7 +100,10 @@ def affected_roles(evidence: list[Evidence]) -> tuple[list[str], list[str]]:
     for item in evidence:
         for clause in re.split(r"[;.!?]\s*", item.fragment):
             if re.search(
-                r"не\s+(?:затрон|пострад|уязвим|атакован|скомпрометирован)", clause, re.IGNORECASE
+                r"не\s+(?:затрон|пострад|уязвим|атакован|скомпрометирован|подтвержд)|"
+                r"предполож|неподтвержд|отрица|опроверг|возможн|предварител",
+                clause,
+                re.IGNORECASE,
             ):
                 continue
             for match in SYSTEM.finditer(clause):

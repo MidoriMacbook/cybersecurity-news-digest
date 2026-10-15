@@ -7,8 +7,9 @@ const fields = [
   "source_type",
   "url",
   "published_at",
+  "read_error",
 ] as const;
-const maxSize = 2 * 1024 * 1024;
+const maxSize = 2_000_000;
 export function parseArticles(
   value: string,
   format: "json" | "csv" | "text",
@@ -19,7 +20,7 @@ export function parseArticles(
   let records: unknown;
   if (format === "json") {
     try {
-      records = JSON.parse(value);
+      records = JSON.parse(value.replace(/^\uFEFF/, ""));
     } catch {
       throw new Error("Не удалось прочитать JSON. Проверьте синтаксис.");
     }
@@ -45,7 +46,7 @@ export function parseArticles(
     if (!record || typeof record !== "object" || Array.isArray(record))
       throw new Error("Каждая публикация должна быть объектом.");
     const input = record as Record<string, unknown>;
-    return Object.fromEntries(
+    const normalized = Object.fromEntries(
       fields.map((key) => {
         const v = input[key];
         if (v != null && typeof v !== "string")
@@ -60,7 +61,16 @@ export function parseArticles(
         ];
       }),
     ) as Article;
+    return { ...normalized, original_record: structuredClone(input) };
   });
+}
+export function serializeDigestRequest(value: unknown): string {
+  const body = JSON.stringify(value);
+  if (new TextEncoder().encode(body).length > maxSize)
+    throw new Error(
+      "Размер запроса вместе с исходными записями превышает 2 МБ. Уменьшите набор материалов.",
+    );
+  return body;
 }
 function csvRows(value: string): string[][] {
   const rows: string[][] = [];
