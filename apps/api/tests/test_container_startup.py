@@ -1,9 +1,8 @@
 import runpy
 from pathlib import Path, PurePosixPath
 
+from app import main
 from fastapi.testclient import TestClient
-
-import app.main as main
 
 
 def test_configured_demo_path_starts_in_shallow_container_layout(monkeypatch):
