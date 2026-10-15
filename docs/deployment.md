@@ -2,13 +2,13 @@
 
 ## Опубликованный сервис
 
-- Репозиторий: https://github.com/MidoriMacbook/cybersecurity-news-digest-clean, ветка main.
+- Репозиторий: https://github.com/MidoriMacbook/cybersecurity-news-digest, ветка main.
 - Сайт и backend: https://cybersecurity-news-digest-clean.onrender.com.
 - Health: https://cybersecurity-news-digest-clean.onrender.com/health.
 - Панель сервиса: https://dashboard.render.com/web/srv-db84l1uq1p3s739iek20.
 - Тариф Free, Frankfurt, Dockerfile ./Dockerfile, context .; постоянный диск и платная база не подключены.
 
-Для предыдущей версии 5a31b3d подтверждены сборка образа, запуск, /health и demo-run; проверки текущей версии фиксируются в verification-report.md. При создании сервиса включён autoDeploy, но получение webhook от нового публичного репозитория не подтверждено: исправленная версия опубликована ручным деплоем. До проверки интеграции GitHub используйте Manual Deploy → Deploy latest commit в панели сервиса. Файл render.yaml содержит рекомендуемый healthCheckPath /health; HTTP-проверка этого адреса выполнена отдельно.
+Для версии 1.6 подтверждены Docker build/run в CI и Render, /health, demo-run, экспорт и публичный адаптивный интерфейс; результаты — в verification-report.md. При создании сервиса включён autoDeploy, но получение webhook от нового публичного репозитория не подтверждено: исправленная версия опубликована ручным деплоем. До проверки интеграции GitHub используйте Manual Deploy → Deploy latest commit в панели сервиса. Файл render.yaml содержит рекомендуемый healthCheckPath /health; HTTP-проверка этого адреса выполнена отдельно.
 
 ## Вариант A: Vercel + Render
 

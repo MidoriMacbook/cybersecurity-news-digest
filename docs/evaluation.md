@@ -25,7 +25,7 @@
 | Предпросмотр письма | test_demo_export_idempotency_and_validation и iframe браузера | Подтверждено |
 | Согласованность письма/поста | validate_result, test_unverified_copy_rolls_back_entire_result, сохранение evidence в обоих форматах | Подтверждено; смысловая полнота вероятностного пересказа ограничена |
 | Журнал | test_unavailable_source_survives_into_exported_journal; source_index/raw/normalized/evidence | Подтверждено |
-| JSON/CSV экспорт | test_demo_export_idempotency_and_validation, публичные endpoints | Подтверждено в предыдущей опубликованной версии; повторная проверка новой версии фиксируется в verification-report.md |
+| JSON/CSV экспорт | test_demo_export_idempotency_and_validation, публичные endpoints | Подтверждено на публичной версии 1.6; verification-report.md |
 | Ошибки | model_error, invalid_model, unavailable, oversized и test_storage_error_returns_safe_retryable_response | Подтверждено; модельные ошибки имитированы |
 | Prompt injection | injection и test_exact_requested_injection_is_data_in_mock_and_ai | Mock и имитированный AI подтверждены; реальный AI не проверен |
 | Воспроизводимость | test_demo_export_idempotency_and_validation, test_cache_namespace_tracks_key_presence_model_endpoint_and_engine | Подтверждено |
