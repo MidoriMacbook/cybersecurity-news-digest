@@ -26,6 +26,21 @@ from app.services.pipeline import process
 
 T = TypeVar("T", bound=BaseModel)
 AI_PIPELINE_DEADLINE_SECONDS = 45.0
+SAFE_GROUNDING_REASONS = {
+    "Rewrite must cover the selected event order exactly once": "event_order_changed",
+    "Prose may not contain instructions, links or markup": "unsafe_prose",
+    "Unknown ID, source URL or supporting fragment": "source_evidence_changed",
+    "Numbers and dates must be preserved": "numbers_dates_changed",
+    "Unsupported entity, action or vocabulary": "unsupported_vocabulary",
+    "Uncertainty and negation must remain verbatim": "caveat_changed",
+    "A source fact, role or consequence was omitted": "source_fact_omitted",
+    "A fact or caveat was omitted": "fact_omitted",
+    "A qualification was removed": "qualification_omitted",
+    "Rewrite exceeded response bound": "response_too_large",
+    "Semantic check must cover each sentence exactly once": "semantic_coverage_changed",
+    "Semantic verifier rejected or misattributed a sentence": "semantic_rejection",
+    "Plan failed independent checks": "plan_checks_failed",
+}
 
 
 def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
@@ -135,6 +150,9 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
                     category = "connection_error"
                 elif phase == "grounding":
                     category = "grounding_error"
+                    record["error_reason"] = SAFE_GROUNDING_REASONS.get(
+                        str(error), "grounding_check_failed"
+                    )
                 elif phase == "schema":
                     category = "schema_error"
                 else:
@@ -154,8 +172,10 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
                                 "Предыдущий ответ отклонён сервером: " + category + ". "
                                 "Верни новый ответ строго по исходной схеме и исходным данным. "
                                 "Не добавляй и не пропускай факты, числа, источники и оговорки. "
-                                "Для пересказа используй дословные исходные цитаты, если "
-                                "не уверен в безопасном изменении формулировки."
+                                "Каждый элемент digest и post должен дословно совпадать "
+                                "с одним исходным фрагментом evidence. Не переформулируй "
+                                "цитаты в повторном ответе. Сохрани все исходные факты "
+                                "и оговорки, распределив их по предложениям."
                             ),
                         }
                     )

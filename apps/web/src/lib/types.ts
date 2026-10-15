@@ -98,10 +98,21 @@ export type DigestResult = {
   completed_at?: string;
   application_version?: string;
 };
+export type AIExecutionStamp = {
+  mode: "ai" | "fallback";
+  model_name: string;
+  prompt_version: string;
+  completed_at: string;
+  application_version: string;
+};
 export type Health = {
   status: string;
   mode: string;
   model_name: string;
   prompt_version: string;
   llm_configured?: boolean;
+  execution_status?: {
+    last_ai_run: AIExecutionStamp | null;
+    last_successful_ai_run: AIExecutionStamp | null;
+  };
 };

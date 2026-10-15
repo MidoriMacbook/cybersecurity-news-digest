@@ -1,4 +1,4 @@
-import type { RewrittenCopy } from "./types.ts";
+import type { Health, RewrittenCopy } from "./types.ts";
 
 export function eventDigest(
   result: { mode?: string; ai_copy?: RewrittenCopy | null },
@@ -26,18 +26,28 @@ type RunInput = {
   metrics: Record<string, unknown>;
 };
 
-export function serverModeLabel(health: {
-  mode: string;
-  llm_configured?: boolean;
-}) {
-  return health.llm_configured === true ||
-    (health.llm_configured == null && ["ai", "api"].includes(health.mode))
-    ? "ИИ настроен · прогон не подтверждён"
-    : "Mock · ключ не настроен";
+type ServerHealth = Pick<
+  Health,
+  "mode" | "llm_configured" | "execution_status"
+>;
+
+export function serverModeLabel(health: ServerHealth) {
+  const configured =
+    health.llm_configured === true ||
+    (health.llm_configured == null && ["ai", "api"].includes(health.mode));
+  if (!configured) return "Mock · ключ не настроен";
+  if (health.execution_status?.last_ai_run?.mode === "fallback")
+    return "ИИ вызван, показан резервный результат";
+  if (
+    health.execution_status?.last_ai_run?.mode === "ai" &&
+    health.execution_status.last_successful_ai_run?.mode === "ai"
+  )
+    return "ИИ-прогон подтверждён";
+  return "ИИ настроен · прогон не подтверждён";
 }
 
 export function presentationStatus(
-  health: { status: string; mode: string; llm_configured?: boolean } | null,
+  health: (ServerHealth & { status: string }) | null,
   error = "",
 ) {
   if (!health || health.status !== "ok") {
@@ -62,16 +72,35 @@ export function presentationStatus(
   const configured =
     health.llm_configured === true ||
     (health.llm_configured == null && ["ai", "api"].includes(health.mode));
+  const last = health.execution_status?.last_ai_run;
+  const success = health.execution_status?.last_successful_ai_run;
+  const completed = success ? new Date(success.completed_at) : null;
+  const successHint =
+    success && completed && !Number.isNaN(completed.getTime())
+      ? `Последний успешный AI-прогон: ${new Intl.DateTimeFormat("ru-RU", {
+          dateStyle: "short",
+          timeStyle: "short",
+          timeZone: "Europe/Moscow",
+        }).format(
+          completed,
+        )} МСК · ${success.model_name} · ${success.prompt_version}.`
+      : "Успешный AI-прогон в текущем хранилище не подтверждён.";
   return {
     title: configured ? serverModeLabel(health) : "Демонстрационный режим",
     api: "API отвечает",
     demo: "Демо-режим доступен",
     key: configured ? "AI-конфигурация добавлена" : "AI-ключ не подключён",
     description: configured
-      ? "Backend настроен для ИИ. Успех обращения проверяйте в новом результате."
+      ? last?.mode === "fallback"
+        ? "Последний AI-запуск завершился в режиме fallback. Показан безопасный локальный результат."
+        : last?.mode === "ai" && success?.mode === "ai"
+          ? "Последний AI-выпуск принят после проверок цитат и семантической сверки. Это не подтверждает истинность исходной новости."
+          : "Backend настроен для ИИ. Успех обращения проверяйте в новом результате."
       : "Сейчас используется демонстрационный режим без внешней модели.",
     hint: configured
-      ? "Демо доступно без обращения к модели. Настройка ключа не подтверждает его работоспособность."
+      ? last
+        ? successHint
+        : "Демо доступно без обращения к модели. Настройка ключа не подтверждает его работоспособность."
       : "Реальная модель не подключена. AI-режим доступен после настройки backend.",
   };
 }

@@ -119,6 +119,7 @@ def create_app(storage: Storage | None = None) -> FastAPI:
             else "extractive-local",
             "prompt_version": "editorial-v3" if os.getenv("LLM_API_KEY") else "pipeline-v1",
             "application_version": ENGINE_VERSION,
+            "execution_status": store.public_execution_status(),
         }
 
     @app.get("/api/v1/demo")

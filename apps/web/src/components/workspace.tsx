@@ -52,10 +52,24 @@ export function Workspace({ children }: { children: React.ReactNode }) {
       sessionStorage.removeItem("cyberdigest.result");
     }
     setReady(true);
-    request<Health>("/health")
-      .then(setHealth)
-      .catch((e) => setHealthError(e.message));
   }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    request<Health>("/health", { signal: controller.signal, cache: "no-store" })
+      .then((value) => {
+        if (!controller.signal.aborted) {
+          setHealth(value);
+          setHealthError("");
+        }
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setHealth(null);
+          setHealthError(error.message);
+        }
+      });
+    return () => controller.abort();
+  }, [path, result?.digest_id]);
   const save = useCallback((r: DigestResult) => {
     setResult(r);
     try {
@@ -148,8 +162,8 @@ export function Workspace({ children }: { children: React.ReactNode }) {
               <strong>{serverModeLabel(health)}</strong>
               <span>
                 Модель сервера: {health.model_name} · промпт:{" "}
-                {health.prompt_version}. Успешный ИИ-прогон подтверждается
-                только в результате.
+                {health.prompt_version}. Режим конкретного выпуска указан в его
+                паспорте.
               </span>
             </div>
           )}

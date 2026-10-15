@@ -1,0 +1,28 @@
+[
+  {
+    "id": "real-2026-october-patch-tuesday-20261015",
+    "title": "Microsoft",
+    "text": "Октябрьская пачка обновлений от Microsoft снова бьет рекорды — в ней закрывается 1414 уязвимостей.",
+    "source": "Блог Лаборатории Касперского",
+    "source_type": "media",
+    "url": "https://www.kaspersky.ru/blog/2026-october-patch-tuesday/42847/",
+    "published_at": "2026-10-14T13:33:42+00:00",
+    "original_record": {
+      "extraction": "short_verbatim_excerpt",
+      "timestamp_source": "https://www.kaspersky.ru/blog/feed/"
+    }
+  },
+  {
+    "id": "real-injecteave-eavesdropping-method-20261015",
+    "title": "InjectEave",
+    "text": "наушники — это электронные устройства, компоненты которых имеют свои физические особенности, которые могут раскрыть тщательно оберегаемые секреты без всяких кибератак.",
+    "source": "Блог Лаборатории Касперского",
+    "source_type": "media",
+    "url": "https://www.kaspersky.ru/blog/injecteave-eavesdropping-method/42840/",
+    "published_at": "2026-10-13T14:01:07+00:00",
+    "original_record": {
+      "extraction": "short_verbatim_excerpt",
+      "timestamp_source": "https://www.kaspersky.ru/blog/feed/"
+    }
+  }
+]

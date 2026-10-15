@@ -42,6 +42,8 @@ def test_failed_attempt_has_safe_diagnostic_category(monkeypatch, failure):
         "grounding": "grounding_error",
     }
     assert all(row.get("error_category") == expected[failure] for row in failed)
+    if failure == "grounding":
+        assert all(row.get("error_reason") == "numbers_dates_changed" for row in failed)
     if failure == "http":
         assert all(row["http_status"] == 429 for row in failed)
     assert "fixture-private-key" not in result.model_dump_json()
@@ -60,6 +62,7 @@ def test_rewrite_retry_receives_safe_feedback_without_rejected_prose(monkeypatch
             assert len(payload["messages"]) == 3
             feedback = payload["messages"][-1]["content"]
             assert "grounding_error" in feedback
+            assert "дословно совпадать" in feedback
             assert "999" not in feedback
         return transport(payload)
 

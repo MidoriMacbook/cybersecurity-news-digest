@@ -209,7 +209,7 @@ class Result(StrictModel):
     token_usage: TokenUsage = Field(default_factory=TokenUsage)
     started_at: str = ""
     completed_at: str = ""
-    application_version: str = "1.6.1"
+    application_version: str = "1.6.2"
 
     def digest_text_without_urls(self) -> str:
         return re.sub(r"https?://\S+", "", self.digest_text)

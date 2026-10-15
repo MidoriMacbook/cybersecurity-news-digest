@@ -138,3 +138,50 @@ test("visible digest uses accepted AI copy and never a rejected candidate", () =
     ["Другое событие"],
   );
 });
+
+test("public persisted success confirms AI and names its completion", () => {
+  const run = {
+    digest_id: "success",
+    mode: "ai" as const,
+    model_name: "fixture-model",
+    prompt_version: "editorial-v3",
+    completed_at: "2026-10-15T14:00:00+00:00",
+    application_version: "1.6.2",
+  };
+  const health = {
+    status: "ok",
+    mode: "ai",
+    llm_configured: true,
+    execution_status: { last_ai_run: run, last_successful_ai_run: run },
+  };
+  assert.equal(serverModeLabel(health), "ИИ-прогон подтверждён");
+  assert.match(presentationStatus(health).hint, /fixture-model/);
+  assert.match(presentationStatus(health).hint, /editorial-v3/);
+  assert.match(presentationStatus(health).hint, /17:00/);
+});
+
+test("latest fallback is visible while prior successful evidence remains", () => {
+  const success = {
+    digest_id: "success",
+    mode: "ai" as const,
+    model_name: "fixture-model",
+    prompt_version: "editorial-v3",
+    completed_at: "2026-10-15T14:00:00+00:00",
+    application_version: "1.6.2",
+  };
+  const health = {
+    status: "ok",
+    mode: "ai",
+    llm_configured: true,
+    execution_status: {
+      last_ai_run: { ...success, mode: "fallback" as const },
+      last_successful_ai_run: success,
+    },
+  };
+  assert.equal(
+    serverModeLabel(health),
+    "ИИ вызван, показан резервный результат",
+  );
+  assert.match(presentationStatus(health).hint, /Последний успешный/);
+  assert.match(presentationStatus(health).description, /fallback/);
+});
