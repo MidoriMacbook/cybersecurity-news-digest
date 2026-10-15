@@ -8,22 +8,22 @@ export default function Home() {
   return (
     <>
       <div className="home-hero">
-        <div className="eyebrow">ЕЖЕДНЕВНЫЙ ОБЗОР · EUROPE/MOSCOW</div>
+        <div className="eyebrow">НОВОСТИ КИБЕРБЕЗОПАСНОСТИ</div>
         <h1>
-          События дня.
+          Главное за день.
           <br />
-          <em>Факты на первом месте.</em>
+          <em>С опорой на источники.</em>
         </h1>
         <p>
-          Короткий обзор кибербезопасности: факты, источники и причины выбора в
-          одном выпуске.
+          Соберите новости в короткий дайджест, письмо и пост со ссылками на
+          источники.
         </p>
         <div className="button-row">
           <Link className="button primary" href="/create/">
-            Создать дайджест <span>↗</span>
+            Создать выпуск <span>↗</span>
           </Link>
           <Link className="button secondary" href="/create/?demo=1">
-            Открыть демо
+            Открыть пример
           </Link>
         </div>
         <section
@@ -45,68 +45,65 @@ export default function Home() {
         <dl className="home-limits" aria-label="Формат выпуска">
           <div>
             <dt>24 часа</dt>
-            <dd>до контрольного времени</dd>
+            <dd>за выбранный период</dd>
           </div>
           <div>
             <dt>до 5 событий</dt>
-            <dd>с объяснением выбора</dd>
+            <dd>в одном выпуске</dd>
           </div>
           <div>
             <dt>4000 знаков</dt>
-            <dd>дайджест, без учёта URL</dd>
+            <dd>без учёта ссылок</dd>
           </div>
           <div>
             <dt>Источники и журнал</dt>
-            <dd>для проверки каждого факта</dd>
+            <dd>рядом с результатом</dd>
           </div>
         </dl>
       </div>
       <div className="section-heading">
-        <h2>От публикаций к ясной картине</h2>
-        <span>ПРОЦЕСС / 03 ЭТАПА</span>
+        <h2>Как создать выпуск</h2>
+        <span>ТРИ ШАГА</span>
       </div>
       <div className="process-grid">
         <article>
           <span className="process-number">01</span>
           <h3>Соберите материалы</h3>
           <p>
-            JSON, CSV, текст или RSS и HTML. Контрольное время определяет
-            последние 24 часа.
+            Загрузите файл, вставьте текст или добавьте ссылки на публикации.
           </p>
         </article>
         <article>
           <span className="process-number">02</span>
-          <h3>Проверьте контекст</h3>
+          <h3>Задайте период</h3>
           <p>
-            Отбор по периоду и теме, объединение повторов, сохранение оговорок и
-            противоречий.
+            Укажите дату и время. Сервис выберет новости за предыдущие 24 часа и
+            объединит повторы.
           </p>
         </article>
         <article>
           <span className="process-number">03</span>
           <h3>Подготовьте выпуск</h3>
           <p>
-            До пяти событий, письмо и пост. Причины выбора, источники и журнал
-            доступны рядом.
+            Нажмите «Подготовить выпуск». Дайджест, письмо и пост появятся в
+            разделе «Результат».
           </p>
         </article>
       </div>
       <section className="jury-preview" aria-labelledby="jury-preview-title">
         <div>
-          <div className="eyebrow">ЧТО УВИДИТ ЖЮРИ</div>
-          <h2 id="jury-preview-title">От события — к подтверждению</h2>
+          <div className="eyebrow">ПРИМЕР ВЫПУСКА</div>
+          <h2 id="jury-preview-title">Новость и её источник</h2>
           <p>
-            Откройте демо, подготовьте выпуск и сравните дайджест, письмо и
-            пост. Во вкладках рядом — источники, причины выбора и журнал.
+            Откройте пример, чтобы посмотреть готовые форматы, источники и
+            журнал обработки.
           </p>
           <Link href="/create/?demo=1" className="text-link">
-            Проверить на учебном наборе →
+            Попробовать пример →
           </Link>
         </div>
         <article className="sample-event" aria-label="Учебный пример события">
-          <span className="sample-label">
-            УЧЕБНЫЙ ПРИМЕР · СИНТЕТИЧЕСКИЕ ДАННЫЕ
-          </span>
+          <span className="sample-label">УЧЕБНЫЙ ПРИМЕР</span>
           <h3>Поставщик выпустил исправление уязвимости</h3>
           <p>
             Учебный поставщик подтвердил уязвимость CVE-2026-10001 в сервере.
@@ -118,26 +115,24 @@ export default function Home() {
               «Выпущено исправление; сведения об эксплуатации отсутствуют.»
             </span>
           </div>
-          <small>
-            ID: vulnerability · учебный источник example.org/demo/vulnerability
-          </small>
+          <small>Учебный источник: example.org/demo/vulnerability</small>
         </article>
       </section>
       <div className="home-bottom">
         <div>
-          <div className="eyebrow">ПРОЗРАЧНОСТЬ ПО УМОЛЧАНИЮ</div>
+          <div className="eyebrow">ПОДРОБНОСТИ ВЫПУСКА</div>
           <h2>
-            Не хватает данных?
+            Каждое решение
             <br />
-            Это тоже часть результата.
+            можно проверить.
           </h2>
           <p>
-            Неизвестные даты и неподтверждённые сведения не превращаются в
-            факты. Каждый исключённый материал получает объяснение.
+            В журнале видно, какие материалы вошли в выпуск и почему. Ссылки
+            помогают сверить текст с источниками.
           </p>
         </div>
         <Link href="/docs/" className="text-link">
-          Как устроен дайджест →
+          Как это работает →
         </Link>
       </div>
     </>

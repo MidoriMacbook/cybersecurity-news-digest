@@ -8,16 +8,19 @@ import {
 } from "../src/lib/execution.ts";
 
 test("presentation never invents API or demo availability before health succeeds", () => {
-  assert.equal(presentationStatus(null).api, "Проверяем API…");
-  assert.equal(presentationStatus(null).demo, "Доступность демо проверяется");
-  assert.equal(presentationStatus(null, "network error").api, "API недоступен");
+  assert.equal(presentationStatus(null).api, "Подключаемся…");
+  assert.equal(presentationStatus(null).demo, "Загружаем пример");
+  assert.equal(
+    presentationStatus(null, "network error").api,
+    "Сервис недоступен",
+  );
   assert.equal(
     presentationStatus(null, "network error").demo,
-    "Демо временно недоступно",
+    "Пример пока недоступен",
   );
   assert.equal(
     presentationStatus({ status: "error", mode: "mock" }).api,
-    "API сообщает ошибку",
+    "Сервис временно недоступен",
   );
 });
 
@@ -27,17 +30,14 @@ test("keyless presentation explicitly distinguishes demo from real AI", () => {
     mode: "mock",
     llm_configured: false,
   });
-  assert.equal(status.api, "API отвечает");
-  assert.equal(status.demo, "Демо-режим доступен");
-  assert.equal(status.title, "Демонстрационный режим");
+  assert.equal(status.api, "Сервис доступен");
+  assert.equal(status.demo, "Пример доступен");
+  assert.equal(status.title, "Обработка без ИИ");
   assert.equal(
     status.description,
-    "Сейчас используется демонстрационный режим без внешней модели.",
+    "Сервис подготовит выпуск из исходных материалов.",
   );
-  assert.equal(
-    status.hint,
-    "Реальная модель не подключена. AI-режим доступен после настройки backend.",
-  );
+  assert.equal(status.hint, "Пример можно открыть без настройки ИИ.");
 });
 
 test("configured presentation never treats key presence as successful AI execution", () => {
@@ -46,13 +46,13 @@ test("configured presentation never treats key presence as successful AI executi
     mode: "ai",
     llm_configured: true,
   });
-  assert.equal(status.title, "ИИ настроен · прогон не подтверждён");
-  assert.match(status.description, /новом результате/);
-  assert.equal(status.api, "API отвечает");
+  assert.equal(status.title, "ИИ настроен");
+  assert.match(status.description, /работу ИИ/);
+  assert.equal(status.api, "Сервис доступен");
   assert.equal(
     presentationStatus({ status: "ok", mode: "ai", llm_configured: false })
       .title,
-    "Демонстрационный режим",
+    "Обработка без ИИ",
   );
 });
 
@@ -105,11 +105,11 @@ test("measured zero tokens and absent token usage remain distinct", () => {
 test("configured provider is not presented as a successful real AI run", () => {
   assert.equal(
     serverModeLabel({ mode: "ai", llm_configured: true }),
-    "ИИ настроен · прогон не подтверждён",
+    "ИИ настроен",
   );
   assert.equal(
     serverModeLabel({ mode: "mock", llm_configured: false }),
-    "Mock · ключ не настроен",
+    "Обработка без ИИ",
   );
 });
 
@@ -154,9 +154,9 @@ test("public persisted success confirms AI and names its completion", () => {
     llm_configured: true,
     execution_status: { last_ai_run: run, last_successful_ai_run: run },
   };
-  assert.equal(serverModeLabel(health), "ИИ-прогон подтверждён");
-  assert.match(presentationStatus(health).hint, /fixture-model/);
-  assert.match(presentationStatus(health).hint, /editorial-v3/);
+  assert.equal(serverModeLabel(health), "Выпуск с ИИ готов");
+  assert.match(presentationStatus(health).hint, /Последний выпуск с ИИ/);
+  assert.match(presentationStatus(health).hint, /МСК/);
   assert.match(presentationStatus(health).hint, /17:00/);
 });
 
@@ -178,10 +178,7 @@ test("latest fallback is visible while prior successful evidence remains", () =>
       last_successful_ai_run: success,
     },
   };
-  assert.equal(
-    serverModeLabel(health),
-    "ИИ вызван, показан резервный результат",
-  );
-  assert.match(presentationStatus(health).hint, /Последний успешный/);
-  assert.match(presentationStatus(health).description, /fallback/);
+  assert.equal(serverModeLabel(health), "Готов резервный результат");
+  assert.match(presentationStatus(health).hint, /Последний выпуск с ИИ/);
+  assert.match(presentationStatus(health).description, /подготовлен без ИИ/);
 });

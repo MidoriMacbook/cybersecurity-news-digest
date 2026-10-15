@@ -35,15 +35,15 @@ export function serverModeLabel(health: ServerHealth) {
   const configured =
     health.llm_configured === true ||
     (health.llm_configured == null && ["ai", "api"].includes(health.mode));
-  if (!configured) return "Mock · ключ не настроен";
+  if (!configured) return "Обработка без ИИ";
   if (health.execution_status?.last_ai_run?.mode === "fallback")
-    return "ИИ вызван, показан резервный результат";
+    return "Готов резервный результат";
   if (
     health.execution_status?.last_ai_run?.mode === "ai" &&
     health.execution_status.last_successful_ai_run?.mode === "ai"
   )
-    return "ИИ-прогон подтверждён";
-  return "ИИ настроен · прогон не подтверждён";
+    return "Выпуск с ИИ готов";
+  return "ИИ настроен";
 }
 
 export function presentationStatus(
@@ -53,20 +53,18 @@ export function presentationStatus(
   if (!health || health.status !== "ok") {
     const failed = Boolean(error || health);
     return {
-      title: failed ? "Сервер недоступен" : "Проверяем режим",
+      title: failed ? "Нет соединения" : "Проверяем соединение",
       api: failed
         ? health
-          ? "API сообщает ошибку"
-          : "API недоступен"
-        : "Проверяем API…",
-      demo: failed
-        ? "Демо временно недоступно"
-        : "Доступность демо проверяется",
-      key: "Статус ключа не подтверждён",
+          ? "Сервис временно недоступен"
+          : "Сервис недоступен"
+        : "Подключаемся…",
+      demo: failed ? "Пример пока недоступен" : "Загружаем пример",
+      key: "Проверяем подключение ИИ",
       description: failed
-        ? "Не удалось подтвердить готовность сервера. Обновите страницу, чтобы повторить проверку."
-        : "Ожидаем ответ сервера. Первый запрос после простоя может занять больше времени.",
-      hint: "Режим будет показан после успешного ответа API.",
+        ? "Обновите страницу, чтобы проверить соединение."
+        : "Подключаемся к сервису.",
+      hint: "Статус обновится после подключения.",
     };
   }
   const configured =
@@ -77,31 +75,29 @@ export function presentationStatus(
   const completed = success ? new Date(success.completed_at) : null;
   const successHint =
     success && completed && !Number.isNaN(completed.getTime())
-      ? `Последний успешный AI-прогон: ${new Intl.DateTimeFormat("ru-RU", {
+      ? `Последний выпуск с ИИ: ${new Intl.DateTimeFormat("ru-RU", {
           dateStyle: "short",
           timeStyle: "short",
           timeZone: "Europe/Moscow",
-        }).format(
-          completed,
-        )} МСК · ${success.model_name} · ${success.prompt_version}.`
-      : "Успешный AI-прогон в текущем хранилище не подтверждён.";
+        }).format(completed)} МСК.`
+      : "Готовый выпуск появится в разделе «Результат».";
   return {
-    title: configured ? serverModeLabel(health) : "Демонстрационный режим",
-    api: "API отвечает",
-    demo: "Демо-режим доступен",
-    key: configured ? "AI-конфигурация добавлена" : "AI-ключ не подключён",
+    title: configured ? serverModeLabel(health) : "Обработка без ИИ",
+    api: "Сервис доступен",
+    demo: "Пример доступен",
+    key: configured ? "ИИ можно выбрать при создании" : "ИИ не подключён",
     description: configured
       ? last?.mode === "fallback"
-        ? "Последний AI-запуск завершился в режиме fallback. Показан безопасный локальный результат."
+        ? "Последний выпуск подготовлен без ИИ."
         : last?.mode === "ai" && success?.mode === "ai"
-          ? "Последний AI-выпуск принят после проверок цитат и семантической сверки. Это не подтверждает истинность исходной новости."
-          : "Backend настроен для ИИ. Успех обращения проверяйте в новом результате."
-      : "Сейчас используется демонстрационный режим без внешней модели.",
+          ? "ИИ подготовил выпуск. Источники и подробности доступны в результате."
+          : "Создайте выпуск, чтобы проверить работу ИИ."
+      : "Сервис подготовит выпуск из исходных материалов.",
     hint: configured
       ? last
         ? successHint
-        : "Демо доступно без обращения к модели. Настройка ключа не подтверждает его работоспособность."
-      : "Реальная модель не подключена. AI-режим доступен после настройки backend.",
+        : "При создании включите «Использовать ИИ»."
+      : "Пример можно открыть без настройки ИИ.",
   };
 }
 

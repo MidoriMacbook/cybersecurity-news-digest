@@ -123,19 +123,20 @@ export function Workspace({ children }: { children: React.ReactNode }) {
           <div className="sidebar-note">
             <span className="tiny-label">ПРИНЦИП РАБОТЫ</span>
             <p>
-              Каждый факт —<br />с опорой на источник.
+              Факты и ссылки
+              <br />в одном выпуске.
             </p>
-            <small>Период 24 часа. До 5 событий. Проверяемый результат.</small>
+            <small>До пяти событий за 24 часа.</small>
           </div>
-          <div className="api-status" title={healthError || health?.model_name}>
+          <div className="api-status" title="Состояние сервиса">
             <span className={health ? "status-dot" : "status-dot offline"} />
             {health
               ? serverModeLabel(health)
               : healthError
-                ? "API недоступен"
-                : "Подключение к API…"}
-            <small>{health?.model_name || "Состояние сервера"}</small>
-            {health && <small>Промпт: {health.prompt_version}</small>}
+                ? "Нет соединения"
+                : "Подключаемся…"}
+            <small>Состояние сервиса</small>
+            {health && <small>Подробности в выпуске</small>}
           </div>
         </aside>
         <div className="main-area">
@@ -149,11 +150,7 @@ export function Workspace({ children }: { children: React.ReactNode }) {
               </strong>
             </span>
             <span className="timezone">
-              {health
-                ? `${health.mode} · `
-                : healthError
-                  ? "API недоступен · "
-                  : ""}
+              {health ? "" : healthError ? "Нет соединения · " : ""}
               UTC+3 · Москва
             </span>
           </header>
@@ -171,10 +168,7 @@ export function Workspace({ children }: { children: React.ReactNode }) {
             {children}
           </main>
           <footer>
-            Кибердайджест{" "}
-            <span>
-              Информационный обзор. Не является официальной рекомендацией.
-            </span>
+            Кибердайджест <span>Обзор новостей по кибербезопасности.</span>
           </footer>
         </div>
       </div>
