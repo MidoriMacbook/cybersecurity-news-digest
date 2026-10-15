@@ -6,6 +6,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypeVar
+from uuid import uuid4
 
 import httpx
 from pydantic import BaseModel
@@ -52,9 +53,10 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
         body = json.dumps(content, ensure_ascii=False)
         if len(body.encode("utf-8")) > 180_000:
             raise ValueError("AI input exceeded body bound")
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": body}]
         payload = {
             "model": provider.model,
-            "messages": [{"role": "system", "content": system}, {"role": "user", "content": body}],
+            "messages": messages,
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {"name": name, "strict": True, "schema": schema.model_json_schema()},
@@ -72,11 +74,13 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
             }
             attempts.append(record)
             accounted = False
+            phase = "transport"
             try:
                 provider.deadline_seconds = min(
                     provider.deadline_seconds, max(0.001, deadline - time.monotonic())
                 )
                 data = provider.request_json(payload)
+                phase = "envelope"
                 if not isinstance(data, dict):
                     raise TypeError("Invalid response envelope")
                 usage = data.get("usage")
@@ -105,7 +109,9 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
                 else:
                     models.append("provider-model-unreported")
                     record["model"] = "provider-model-unreported"
+                phase = "schema"
                 output = schema.model_validate_json(data["choices"][0]["message"]["content"])
+                phase = "grounding"
                 validate(output)
                 record.update(valid=True, status="verified")
                 return output
@@ -118,16 +124,47 @@ def apply_ai_editorial(request: DigestRequest, local: Result) -> Result:
                 StopIteration,
                 TimeoutError,
                 RecursionError,
-            ):
+            ) as error:
                 # Provider bodies and exception text can contain credentials; retain only a category.
+                if isinstance(error, httpx.HTTPStatusError):
+                    category = "http_error"
+                    record["http_status"] = error.response.status_code
+                elif isinstance(error, (httpx.TimeoutException, TimeoutError)):
+                    category = "deadline_exceeded"
+                elif isinstance(error, httpx.RequestError):
+                    category = "connection_error"
+                elif phase == "grounding":
+                    category = "grounding_error"
+                elif phase == "schema":
+                    category = "schema_error"
+                else:
+                    category = "invalid_response"
+                record["error_category"] = category
                 if not accounted:
                     totals.update(input=None, output=None, total=None)
                 if attempt == 1:
                     raise ValueError("AI stage failed bounded validation") from None
+                if category in {"grounding_error", "schema_error", "invalid_response"}:
+                    # Never replay rejected model prose or exception text: either
+                    # could contain instructions or secrets from an upstream body.
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                "Предыдущий ответ отклонён сервером: " + category + ". "
+                                "Верни новый ответ строго по исходной схеме и исходным данным. "
+                                "Не добавляй и не пропускай факты, числа, источники и оговорки. "
+                                "Для пересказа используй дословные исходные цитаты, если "
+                                "не уверен в безопасном изменении формулировки."
+                            ),
+                        }
+                    )
         raise ValueError("AI stage failed")
 
     def final_metadata(result: Result, success: bool) -> Result:
         result.mode = "ai" if success else "fallback"
+        if not success:
+            result.digest_id = local.digest_id + "-" + uuid4().hex[:16]
         result.llm_attempts = len(attempts)
         result.token_usage = TokenUsage(**totals)
         result.metrics.mode = "api" if success else "mock"

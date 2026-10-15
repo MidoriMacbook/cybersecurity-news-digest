@@ -1,5 +1,7 @@
 # Кибердайджест
 
+**Обновление 1.6.1:** приняты исправления повторного AI-запроса после fallback, сохранения результатов и безопасной диагностики. Семь регрессий воспроизведены до исправления и проходят после него. [Отчёт принятия архива](docs/bugfix-report.md).
+
 **Факты на первом месте.** Публикации по кибербезопасности превращаются в короткий выпуск: до пяти событий за последние 24 часа, с источниками и объяснением каждого решения.
 
 [Открыть демо](https://cybersecurity-news-digest-clean.onrender.com/create/?demo=1) · [Сайт](https://cybersecurity-news-digest-clean.onrender.com/) · [Health](https://cybersecurity-news-digest-clean.onrender.com/health) · [OpenAPI](https://cybersecurity-news-digest-clean.onrender.com/api/docs)

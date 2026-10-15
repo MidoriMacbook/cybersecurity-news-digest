@@ -6,7 +6,7 @@ from urllib.parse import urlsplit, urlunsplit
 from app.schemas.models import DigestRequest
 
 PROMPT_VERSION = "pipeline-v1"
-ENGINE_VERSION = "1.6"
+ENGINE_VERSION = "1.6.1"
 MAX_REQUEST_BYTES = 2_000_000
 
 

@@ -14,3 +14,8 @@ artifacts
 **/*.sqlite
 **/*.sqlite3
 **/*.zip
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/*.py[cod]
+**/*.log

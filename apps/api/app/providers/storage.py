@@ -1,6 +1,7 @@
 import hashlib
 import threading
 from typing import Any
+from uuid import uuid4
 
 from sqlalchemy import JSON, Column, MetaData, String, Table, create_engine, select
 from sqlalchemy.exc import IntegrityError
@@ -65,15 +66,34 @@ class Storage:
                             "Ключ повторного запроса уже связан с другими входными данными"
                         )
                     return self.get(record["digest_id"])
-            run_record = connection.execute(
+            run_records = connection.execute(
                 select(self.runs.c.result).where(self.runs.c.request_hash == request_hash)
-            ).first()
-            return Result.model_validate(run_record[0]) if run_record else None
+            )
+            for run_record in run_records:
+                result = Result.model_validate(run_record[0])
+                # Explicit idempotency keys above replay their exact outcome. A new
+                # request may retry a transient failure instead of caching it forever.
+                if request.use_ai and result.mode == "fallback":
+                    continue
+                return result
+            return None
 
     def save(self, request: DigestRequest, result: Result, key: str | None) -> Result:
         request_hash = self.request_hash(request)
         with self.lock:
             existing = self.get(result.digest_id)
+            if (
+                existing
+                and request.use_ai
+                and existing.mode == "fallback"
+                and existing.model_dump() != result.model_dump()
+            ):
+                # Preserve old exports even if a legacy fallback occupied the
+                # deterministic ID now used by a successful retry.
+                result = result.model_copy(
+                    update={"digest_id": result.digest_id + "-" + uuid4().hex[:16]}
+                )
+                existing = None
             if not existing:
                 try:
                     with self.engine.begin() as connection:
@@ -101,6 +121,10 @@ class Storage:
                     )
                     if record and record["request_hash"] != request_hash:
                         raise IdempotencyConflict("Ключ повторного запроса уже использован")
+                    if record:
+                        bound_result = self.get(record["digest_id"])
+                        if bound_result is not None:
+                            return bound_result
                     if not record:
                         connection.execute(
                             self.keys.insert().values(
