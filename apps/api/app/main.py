@@ -22,7 +22,7 @@ from app.services.ingestion import export_csv, parse_articles
 from app.services.pipeline import process, validate_result
 
 DEMO_DATA_DIR = Path(
-    os.getenv("DEMO_DATA_DIR", str(Path(__file__).resolve().parents[3] / "data/demo"))
+    os.getenv("DEMO_DATA_DIR") or str(Path(__file__).resolve().parents[3] / "data/demo")
 )
 UPLOAD_DEADLINE_SECONDS = 10.0
 
