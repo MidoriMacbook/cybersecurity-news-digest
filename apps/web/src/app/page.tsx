@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useWorkspace } from "../components/workspace";
-import { serverModeLabel } from "../lib/execution";
+import { presentationStatus } from "../lib/execution";
 export default function Home() {
-  const { health } = useWorkspace();
+  const { health, healthError } = useWorkspace();
+  const status = presentationStatus(health, healthError);
   return (
     <>
       <div className="home-hero">
@@ -14,29 +15,51 @@ export default function Home() {
           <em>Факты на первом месте.</em>
         </h1>
         <p>
-          Соберите публикации по кибербезопасности в короткий, проверяемый
-          дайджест для руководителей, специалистов ИБ и команд SOC.
+          Короткий обзор кибербезопасности: факты, источники и причины выбора в
+          одном выпуске.
         </p>
         <div className="button-row">
           <Link className="button primary" href="/create/">
             Создать дайджест <span>↗</span>
           </Link>
           <Link className="button secondary" href="/create/?demo=1">
-            Загрузить демонстрационный набор
+            Открыть демо
           </Link>
         </div>
-        <div className="hero-footnote">
-          {health
-            ? `Сервер подключён · ${serverModeLabel(health)}`
-            : "Статус сервера отображается в навигации"}
-          <span>Ключ API не нужен для демо</span>
-        </div>
-        <div className="hero-lines" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
+        <section
+          className="home-status"
+          aria-label="Статус системы"
+          role="status"
+        >
+          <div className="home-status-heading">
+            <strong>{status.title}</strong>
+            <span>{status.api}</span>
+          </div>
+          <p>{status.description}</p>
+          <div className="home-status-details">
+            <span>{status.demo}</span>
+            <span>{status.key}</span>
+          </div>
+          <small>{status.hint}</small>
+        </section>
+        <dl className="home-limits" aria-label="Формат выпуска">
+          <div>
+            <dt>24 часа</dt>
+            <dd>до контрольного времени</dd>
+          </div>
+          <div>
+            <dt>до 5 событий</dt>
+            <dd>с объяснением выбора</dd>
+          </div>
+          <div>
+            <dt>4000 знаков</dt>
+            <dd>дайджест, без учёта URL</dd>
+          </div>
+          <div>
+            <dt>Источники и журнал</dt>
+            <dd>для проверки каждого факта</dd>
+          </div>
+        </dl>
       </div>
       <div className="section-heading">
         <h2>От публикаций к ясной картине</h2>
@@ -68,6 +91,38 @@ export default function Home() {
           </p>
         </article>
       </div>
+      <section className="jury-preview" aria-labelledby="jury-preview-title">
+        <div>
+          <div className="eyebrow">ЧТО УВИДИТ ЖЮРИ</div>
+          <h2 id="jury-preview-title">От события — к подтверждению</h2>
+          <p>
+            Откройте демо, подготовьте выпуск и сравните дайджест, письмо и
+            пост. Во вкладках рядом — источники, причины выбора и журнал.
+          </p>
+          <Link href="/create/?demo=1" className="text-link">
+            Проверить на учебном наборе →
+          </Link>
+        </div>
+        <article className="sample-event" aria-label="Учебный пример события">
+          <span className="sample-label">
+            УЧЕБНЫЙ ПРИМЕР · СИНТЕТИЧЕСКИЕ ДАННЫЕ
+          </span>
+          <h3>Поставщик выпустил исправление уязвимости</h3>
+          <p>
+            Учебный поставщик подтвердил уязвимость CVE-2026-10001 в сервере.
+            Сведения об эксплуатации отсутствуют.
+          </p>
+          <div className="sample-evidence">
+            <strong>Основание</strong>
+            <span>
+              «Выпущено исправление; сведения об эксплуатации отсутствуют.»
+            </span>
+          </div>
+          <small>
+            ID: vulnerability · учебный источник example.org/demo/vulnerability
+          </small>
+        </article>
+      </section>
       <div className="home-bottom">
         <div>
           <div className="eyebrow">ПРОЗРАЧНОСТЬ ПО УМОЛЧАНИЮ</div>

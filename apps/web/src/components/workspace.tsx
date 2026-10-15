@@ -143,11 +143,14 @@ export function Workspace({ children }: { children: React.ReactNode }) {
               UTC+3 · Москва
             </span>
           </header>
-          {health && (
+          {health && path !== "/" && (
             <div className="server-caption">
-              Модель сервера: {health.model_name} · промпт:{" "}
-              {health.prompt_version} · успешный ИИ-прогон подтверждается только
-              в результате
+              <strong>{serverModeLabel(health)}</strong>
+              <span>
+                Модель сервера: {health.model_name} · промпт:{" "}
+                {health.prompt_version}. Успешный ИИ-прогон подтверждается
+                только в результате.
+              </span>
             </div>
           )}
           <main id="content" tabIndex={-1}>

@@ -36,6 +36,46 @@ export function serverModeLabel(health: {
     : "Mock · ключ не настроен";
 }
 
+export function presentationStatus(
+  health: { status: string; mode: string; llm_configured?: boolean } | null,
+  error = "",
+) {
+  if (!health || health.status !== "ok") {
+    const failed = Boolean(error || health);
+    return {
+      title: failed ? "Сервер недоступен" : "Проверяем режим",
+      api: failed
+        ? health
+          ? "API сообщает ошибку"
+          : "API недоступен"
+        : "Проверяем API…",
+      demo: failed
+        ? "Демо временно недоступно"
+        : "Доступность демо проверяется",
+      key: "Статус ключа не подтверждён",
+      description: failed
+        ? "Не удалось подтвердить готовность сервера. Обновите страницу, чтобы повторить проверку."
+        : "Ожидаем ответ сервера. Первый запрос после простоя может занять больше времени.",
+      hint: "Режим будет показан после успешного ответа API.",
+    };
+  }
+  const configured =
+    health.llm_configured === true ||
+    (health.llm_configured == null && ["ai", "api"].includes(health.mode));
+  return {
+    title: configured ? serverModeLabel(health) : "Демонстрационный режим",
+    api: "API отвечает",
+    demo: "Демо-режим доступен",
+    key: configured ? "AI-конфигурация добавлена" : "AI-ключ не подключён",
+    description: configured
+      ? "Backend настроен для ИИ. Успех обращения проверяйте в новом результате."
+      : "Сейчас используется демонстрационный режим без внешней модели.",
+    hint: configured
+      ? "Демо доступно без обращения к модели. Настройка ключа не подтверждает его работоспособность."
+      : "Реальная модель не подключена. AI-режим доступен после настройки backend.",
+  };
+}
+
 export function executionDetails(result: RunInput) {
   const mode =
     result.mode ||
