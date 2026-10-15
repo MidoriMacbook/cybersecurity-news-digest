@@ -1,6 +1,6 @@
 # Соответствие конкурсному ТЗ
 
-Дата аудита: 15 октября 2026. Подтверждение относится к перечисленным синтетическим входам и регрессионным тестам, а не к универсальной достоверности новостей. Реальный ключ отсутствует по сообщению пользователя; фактический набор организаторов не найден среди предоставленных входов проекта.
+Дата аудита: 15 октября 2026. Подтверждение относится к перечисленным синтетическим входам и регрессионным тестам, а не к универсальной достоверности новостей. Groq подключён: один реальный AI-выпуск принят, полный синтетический набор вернул fallback. Подробные метрики и ограничения — [live-ai-report.md](live-ai-report.md). Фактический набор организаторов не предоставлен.
 
 | Требование | Проверка | Статус |
 | --- | --- | --- |
@@ -27,13 +27,13 @@
 | Журнал | test_unavailable_source_survives_into_exported_journal; source_index/raw/normalized/evidence | Подтверждено |
 | JSON/CSV экспорт | test_demo_export_idempotency_and_validation, публичные endpoints | Подтверждено на публичной версии 1.6; verification-report.md |
 | Ошибки | model_error, invalid_model, unavailable, oversized и test_storage_error_returns_safe_retryable_response | Подтверждено; модельные ошибки имитированы |
-| Prompt injection | injection и test_exact_requested_injection_is_data_in_mock_and_ai | Mock и имитированный AI подтверждены; реальный AI не проверен |
+| Prompt injection | injection и test_exact_requested_injection_is_data_in_mock_and_ai | Mock/имитация подтверждены; реальный вход с инструкцией безопасно вернулся к fallback, принятый AI-пересказ на нём не подтверждён |
 | Воспроизводимость | test_demo_export_idempotency_and_validation, test_cache_namespace_tracks_key_presence_model_endpoint_and_engine | Подтверждено |
-| Версия модели | test_successful_paraphrase_has_actual_model_and_unknown_usage | Подтверждено имитацией; реальный провайдер не проверен |
+| Версия модели | test_successful_paraphrase_has_actual_model_and_unknown_usage | Подтверждено имитацией и одним реальным принятым выпуском Groq; live-ai-report.md |
 | Версия промпта | Тот же тест, mode mock=pipeline-v1, ai=editorial-v3 | Подтверждено |
 | Время запуска | test_missing_key_has_explicit_telemetry_and_original_record; started_at/completed_at | Подтверждено |
 | Число обращений | test_every_failed_attempt_counted_without_key_or_exception_leak, test_usage_includes_invalid_successful_response_before_retry | Подтверждено имитацией |
-| Расход токенов | test_malformed_usage_never_creates_fabricated_token_count, test_usage_includes_invalid_successful_response_before_retry | Нулевые/неизвестные значения различены; реальный usage не измерен |
+| Расход токенов | test_malformed_usage_never_creates_fabricated_token_count, test_usage_includes_invalid_successful_response_before_retry | Нулевые/неизвестные различены; реальный принятый выпуск: 2869 input + 2294 output = 5163; ошибки полного набора оставляют usage=null |
 
 ## Обязательные артефакты
 
@@ -43,6 +43,6 @@
 
 ## Частично подтверждено и не проверено
 
-Реальное качество релевантности/группировки/пересказа, совместимость конкретного провайдера, реальный usage и prompt injection с ним не проверены без ключа. AI выбирает подтверждающие фрагменты; структурные факты и ограничения остаются серверными. Новые синонимы могут вызвать fallback. Фактический набор организаторов и внешний PostgreSQL не проверены. Полный WCAG-аудит и production-нагрузка не проводились.
+Совместимость Groq, фактическая модель и usage подтверждены одним принятым AI-выпуском на синтетическом материале. Полный набор и вход с prompt injection вернули fallback; устойчивое качество AI на них не подтверждено. Точные результаты — [live-ai-report.md](live-ai-report.md). AI выбирает подтверждающие фрагменты; структурные факты и ограничения остаются серверными. Новые синонимы могут вызвать fallback. Фактический набор организаторов и внешний PostgreSQL не проверены. Полный WCAG-аудит и production-нагрузка не проводились.
 
-Результаты команд, Docker и публичного браузера — verification-report.md. До успешного реального AI-прогона нельзя утверждать полную конкурсную готовность.
+Результаты команд, Docker и публичного браузера — verification-report.md. Один принятый AI-выпуск не подтверждает полную конкурсную готовность на фактическом наборе организаторов.
