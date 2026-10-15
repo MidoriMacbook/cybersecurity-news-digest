@@ -174,7 +174,7 @@ code {
   gap: 15px;
   padding: 13px 12px;
   font-size: 16px;
-  margin: 3px -4px;
+  margin: 3px 0;
   border-radius: 5px;
 }
 .nav-link > span {
