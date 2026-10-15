@@ -1,0 +1,26 @@
+name: Lint
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r apps/api/requirements.txt
+      - run: python -m ruff check apps/api scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+        working-directory: apps/web
+      - run: corepack pnpm typecheck
+        working-directory: apps/web
+      - run: corepack pnpm lint
+        working-directory: apps/web
+      - run: corepack pnpm format:check
+        working-directory: apps/web

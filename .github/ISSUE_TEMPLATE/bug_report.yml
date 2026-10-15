@@ -1,0 +1,17 @@
+name: Ошибка
+description: Сообщить о воспроизводимой ошибке
+labels: [bug]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения
+      description: Приложите только обезличенные материалы; не публикуйте ключи.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Ожидаемый и фактический результат
+    validations:
+      required: true

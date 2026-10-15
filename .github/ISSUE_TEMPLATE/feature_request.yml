@@ -1,0 +1,10 @@
+name: Предложение
+description: Предложить улучшение
+labels: [feature]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Задача пользователя и предлагаемое поведение
+    validations:
+      required: true

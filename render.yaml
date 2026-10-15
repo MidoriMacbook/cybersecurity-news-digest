@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: cybersecurity-news-digest-clean
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: MODE
+        value: mock
+      - key: DATABASE_URL
+        value: sqlite:////app/runtime/digest.db
+      - key: STATIC_DIR
+        value: /app/static
+      - key: DEMO_DATA_DIR
+        value: /app/data/demo
+      - key: CORS_ORIGINS
+        value: https://cybersecurity-news-digest-clean.onrender.com
+# Free SQLite storage is ephemeral. Configure external DATABASE_URL for durable history.

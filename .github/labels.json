@@ -1,0 +1,6 @@
+[
+  {"name":"bug","color":"d73a4a","description":"Ошибка / Bug"},
+  {"name":"feature","color":"0e8a16","description":"Новая возможность / Feature"},
+  {"name":"documentation","color":"0075ca","description":"Документация / Documentation"},
+  {"name":"security","color":"b60205","description":"Безопасность / Security"}
+]

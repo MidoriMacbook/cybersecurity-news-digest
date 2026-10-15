@@ -1,0 +1,16 @@
+.git
+.venv
+.work
+**/node_modules
+**/.next
+**/out
+**/__pycache__
+**/*.db
+**/.env
+**/.env.local
+artifacts
+**/.env.*
+!**/.env.example
+**/*.sqlite
+**/*.sqlite3
+**/*.zip
